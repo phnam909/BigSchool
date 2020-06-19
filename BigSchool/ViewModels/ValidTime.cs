@@ -9,8 +9,6 @@ namespace BigSchool.ViewModels
 {
     public class ValidTime : ValidationAttribute
     {
-
-
         public override bool IsValid(object value)
         {
             DateTime dateTime;
