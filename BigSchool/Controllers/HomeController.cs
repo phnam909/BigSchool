@@ -1,30 +1,55 @@
 ﻿using BigSchool.Models;
+using BigSchool.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using System.Data.Entity;
+using Microsoft.AspNet.Identity;
+
 
 namespace BigSchool.Controllers
 {
     public class HomeController : Controller
     {
-        private ApplicationDbContext _dbcontext;
+        private ApplicationDbContext _dbContext;
 
         public HomeController()
         {
-            _dbcontext = new ApplicationDbContext();
+            _dbContext = new ApplicationDbContext();
         }
-
 
         public ActionResult Index()
         {
-            var upcomingCourse = _dbcontext.Courses
+
+            var userId = User.Identity.GetUserId();
+
+            var listOfAttendedCourses = _dbContext.Attendance
+                .Include(a => a.Course)
+                .Include(a => a.Attendee)
+                .Where(a => a.AttendeeId == userId).ToList();
+
+            var upcommingCourses = _dbContext.Course
                 .Include(c => c.Lecturer)
                 .Include(c => c.Category)
                 .Where(c => c.DateTime > DateTime.Now).ToList();
-            return View(upcomingCourse);
+
+            var followingLecturers = _dbContext.Followings
+                    .Include(f => f.Followee)
+                    .Include(f => f.Follower)
+                    .Where(a => a.FollowerId == userId)
+                    .ToList();
+
+            var viewModel = new CourseViewModel
+            {
+                ListOfAttendedCourses = listOfAttendedCourses,
+                ListOfFollowings = followingLecturers,
+                UpcommingCourses = upcommingCourses,
+                ShowAction = User.Identity.IsAuthenticated
+            };
+
+            return View(viewModel);
         }
 
         public ActionResult About()

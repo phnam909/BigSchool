@@ -10,35 +10,32 @@ using System.Web.Http;
 
 namespace BigSchool.Controllers
 {
-    public class AttendancesController : ApiController
+    [Authorize]
+    public class AttendanceController : ApiController
     {
-        private ApplicationDbContext _dbContext;
-
-        private AttendancesController()
+        private readonly ApplicationDbContext _dbContext;
+        // GET: BigSchool
+        public AttendanceController()
         {
             _dbContext = new ApplicationDbContext();
         }
-
         [HttpPost]
-        public IHttpActionResult Attend(AttendanceDto attendanceDto)
+        public IHttpActionResult Attend(AttendanceDto AttendanceDto)
         {
-            var userId = User.Identity.GetUserId();
-            if (_dbContext.Attendances.Any(a => a.AttendeeId == userId && a.CourseId == attendanceDto.CourseId))
-                return BadRequest("the Attendance already exists");
-
-
-
+            var userID = User.Identity.GetUserId();
+            if (_dbContext.Attendances.Any(a => a.AttendeeId == userID && a.CourseId == AttendanceDto.CourseId))
+            {
+                return BadRequest("The Attendance already exist");
+            }
             var attendance = new Attendance
             {
-                CourseId = attendanceDto.CourseId,
-                AttendeeId = userId
+                CourseId = AttendanceDto.CourseId,
+                AttendeeId = userID
             };
-
             _dbContext.Attendances.Add(attendance);
             _dbContext.SaveChanges();
             return Ok();
         }
-
 
     }
 }
